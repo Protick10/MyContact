@@ -28,6 +28,15 @@ public class SignupLoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup_login);
+
+//        get intent from mycontact backbutton..
+//        Intent contintent = this.getIntent();
+//        Boolean isloginview = contintent.getBooleanExtra("isloginview", false);
+//
+//        if (isloginview == true){
+//            isLoginPage = !isLoginPage;
+//            changeView();
+//        }
         
         //stays logged in..
 
