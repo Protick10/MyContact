@@ -1,10 +1,24 @@
 package com.example.mycontacts;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -12,11 +26,16 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 public class ContactFormActivity extends AppCompatActivity {
 
     EditText name, email, phoneHome, phoneOffice;
     ImageView profileImg;
     Button cancel,save;
+    String encodedImage;
+    int camera_req_code=100, gallary_req_code=10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +49,38 @@ public class ContactFormActivity extends AppCompatActivity {
         profileImg = findViewById(R.id.formImageView);
         cancel = findViewById(R.id.formCancelbutton);
         save = findViewById(R.id.formSaveButton);
+
+
+        //when click on image..
+
+        profileImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                if (ContextCompat.checkSelfPermission(ContactFormActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
+//                != PackageManager.PERMISSION_GRANTED){
+//                   //WHEN PERMISSION IS NOT GRANTED..
+//                    //requesting the permission..
+//                    ActivityCompat.requestPermissions(ContactFormActivity.this, new String[]{
+//                            Manifest.permission.READ_EXTERNAL_STORAGE
+//                    }, 100);
+//                }else {
+                    //when permission is granted
+                    selectImage();
+//                    //decode base64 string
+//                    byte[] bytes = Base64.decode(encodedImage,Base64.DEFAULT);
+//                    //initializing bitmap
+//                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
+//
+//                    profileImg.setImageBitmap(bitmap);
+//                }
+            }
+        });
+
+//        byte[] bytes = Base64.decode(encodedImage,Base64.DEFAULT);
+//        //initializing bitmap
+//        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
+//
+//        profileImg.setImageBitmap(bitmap);
 
 
         save.setOnClickListener(new View.OnClickListener() {
@@ -103,5 +154,131 @@ public class ContactFormActivity extends AppCompatActivity {
                 return phoneNumber.matches(regex);
             }
         });
+    }
+
+    private void selectImage() {
+
+        // clear previous data.
+        profileImg.setImageBitmap(null);
+
+        //initializes intent..
+
+//        Intent intent = new Intent(Intent.ACTION_PICK);
+//        intent.setType("image/*");
+//
+//        startActivityForResult(Intent.createChooser(intent,"Select image"),100);
+
+//        Intent intent = new Intent(Intent.ACTION_PICK);
+//        intent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+////        intent.setType("image/*");
+//        startActivityForResult(intent, gallary_req_code);
+//        Intent cameraintent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        startActivityForResult(cameraintent, camera_req_code);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Choose Image Source");
+        builder.setItems(new CharSequence[]{"Gallery", "Camera"}, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case 0:
+                        // Gallery option
+                        Intent galleryIntent = new Intent(Intent.ACTION_PICK);
+                        galleryIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                        startActivityForResult(galleryIntent, gallary_req_code);
+                        break;
+                    case 1:
+                        // Camera option
+                        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        startActivityForResult(cameraIntent, camera_req_code);
+                        break;
+                }
+            }
+        });
+        builder.show();
+
+
+
+    }
+
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//
+//        //CHECK CONDITION
+//        if (requestCode == 100 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+//            selectImage();
+//        }else {
+//            // when permission is denied..
+//
+//            Toast.makeText(getApplicationContext(),"Permission Denied", Toast.LENGTH_SHORT).show();
+//
+//        }
+//    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode==RESULT_OK && data!=null){
+
+            if (requestCode==gallary_req_code){
+
+                // when result is ok initializing URI
+
+                Uri uri = data.getData();
+
+                //initializeing bitmap
+
+                try {
+                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),uri);
+
+                    //Initialize bite stream
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+                    //compress bitmap
+                    bitmap.compress(Bitmap.CompressFormat.JPEG,100,stream);
+                    //Initialize byte array
+                    byte[] bytes = stream.toByteArray();
+                    //will get encoded string here
+
+                    encodedImage = Base64.encodeToString(bytes,Base64.DEFAULT);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                //decode base64 string
+                byte[] bytes = Base64.decode(encodedImage,Base64.DEFAULT);
+                //initializing bitmap
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
+
+                profileImg.setImageBitmap(bitmap);
+
+            } else if (requestCode == camera_req_code) {
+
+                Bitmap img = (Bitmap) (data.getExtras().get("data"));
+
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+                //compress bitmap
+                img.compress(Bitmap.CompressFormat.JPEG,100,stream);
+                //Initialize byte array
+                byte[] bytes = stream.toByteArray();
+                //will get encoded string here
+
+                encodedImage = Base64.encodeToString(bytes,Base64.DEFAULT);
+
+
+                //get the image..
+
+                byte[] bytecam = Base64.decode(encodedImage,Base64.DEFAULT);
+                //initializing bitmap
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bytecam,0,bytes.length);
+
+                profileImg.setImageBitmap(bitmap);
+
+
+            }
+
+        }
     }
 }
