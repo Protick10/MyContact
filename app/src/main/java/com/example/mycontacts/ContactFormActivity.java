@@ -138,7 +138,10 @@ public class ContactFormActivity extends AppCompatActivity {
                     // Get the image data
                     // ...
                     // Your code to save contact information with image data
-                    // ...
+                    ContactFormDB db = new ContactFormDB(ContactFormActivity.this);
+                    db.insertContacts(nameStr, emailStr, phoneHomeStr, phoneOfficeStr, encodedImage);
+                    Intent intent = new Intent(ContactFormActivity.this, ContactListActivity.class);
+                    startActivity(intent);
                     // Clear the errors
                     name.setError(null);
                     email.setError(null);
@@ -152,6 +155,13 @@ public class ContactFormActivity extends AppCompatActivity {
                 String regex = "^(?:\\+88|88)?(01[3-9]\\d{8})$";
 
                 return phoneNumber.matches(regex);
+            }
+        });
+
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finishAffinity();
             }
         });
     }
@@ -230,18 +240,33 @@ public class ContactFormActivity extends AppCompatActivity {
                 //initializeing bitmap
 
                 try {
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),uri);
+                    // Get the original image from the gallery or camera
+                    Bitmap originalImage = MediaStore.Images.Media.getBitmap(getContentResolver(),uri);
 
-                    //Initialize bite stream
+// Resize the image
+                    int width = 115;
+                    int height = 119;
+                    Bitmap resizedImage = Bitmap.createScaledBitmap(originalImage, width, height, false);
+
+// Convert the resized image to a byte array
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
-
-                    //compress bitmap
-                    bitmap.compress(Bitmap.CompressFormat.JPEG,100,stream);
-                    //Initialize byte array
+                    resizedImage.compress(Bitmap.CompressFormat.JPEG, 80, stream);
                     byte[] bytes = stream.toByteArray();
-                    //will get encoded string here
 
-                    encodedImage = Base64.encodeToString(bytes,Base64.DEFAULT);
+// Encode the byte array to Base64
+                    encodedImage = Base64.encodeToString(bytes, Base64.DEFAULT);
+//                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),uri);
+//
+//                    //Initialize bite stream
+//                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+//
+//                    //compress bitmap
+//                    bitmap.compress(Bitmap.CompressFormat.PNG,100,stream);
+//                    //Initialize byte array
+//                    byte[] bytes = stream.toByteArray();
+//                    //will get encoded string here
+//
+//                    encodedImage = Base64.encodeToString(bytes,Base64.DEFAULT);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -260,7 +285,7 @@ public class ContactFormActivity extends AppCompatActivity {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
                 //compress bitmap
-                img.compress(Bitmap.CompressFormat.JPEG,100,stream);
+                img.compress(Bitmap.CompressFormat.PNG,100,stream);
                 //Initialize byte array
                 byte[] bytes = stream.toByteArray();
                 //will get encoded string here
