@@ -1,6 +1,11 @@
 package com.example.mycontacts;
 
-public class ContactForm {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.io.Serializable;
+
+public class ContactForm implements Parcelable {
 
 //    int id;
     String name = "";
@@ -16,6 +21,40 @@ public class ContactForm {
         this.phone_home = phone_home;
         this.phone_offfice = phone_offfice;
         this.image = image;
+    }
+
+
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(name);
+        dest.writeString(email);
+        dest.writeString(phone_home);
+        dest.writeString(phone_offfice);
+        dest.writeString(image);
+    }
+
+    public static final Parcelable.Creator<ContactForm> CREATOR = new Parcelable.Creator<ContactForm>() {
+        @Override
+        public ContactForm createFromParcel(Parcel in) {
+            return new ContactForm(in);
+        }
+
+        @Override
+        public ContactForm[] newArray(int size) {
+            return new ContactForm[size];
+        }
+    };
+
+    protected ContactForm(Parcel in) {
+        name = in.readString();
+        email = in.readString();
+        phone_home = in.readString();
+        phone_offfice = in.readString();
+        image = in.readString();
     }
 
 }

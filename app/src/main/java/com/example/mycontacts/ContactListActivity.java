@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 
@@ -58,6 +59,21 @@ public class ContactListActivity extends AppCompatActivity {
 //                finish();
             }
         });
+
+        contlv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // Get the selected contact
+                ContactForm selectedContact = contacts.get(position);
+
+                // Open ContactDetailActivity for viewing and updating contact details
+                Intent intent = new Intent(ContactListActivity.this, ContactDetailActivity.class);
+                intent.putExtra("contact", selectedContact);
+                startActivity(intent);
+            }
+        });
+
+
     }
     public void onStart(){
         super.onStart();
