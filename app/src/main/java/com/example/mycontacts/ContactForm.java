@@ -1,5 +1,6 @@
 package com.example.mycontacts;
 
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -7,15 +8,15 @@ import java.io.Serializable;
 
 public class ContactForm implements Parcelable {
 
-//    int id;
+    long id;
     String name = "";
     String email = "";
     String phone_home = "" ;
     String phone_offfice = "";
     String image= "";
 
-    public ContactForm(String name, String email, String phone_home, String phone_offfice, String image){
-//        this.id = id;
+    public ContactForm(long id,String name, String email, String phone_home, String phone_offfice, String image){
+        this.id = id;
         this.name = name;
         this.email = email;
         this.phone_home = phone_home;
@@ -23,6 +24,14 @@ public class ContactForm implements Parcelable {
         this.image = image;
     }
 
+//    public long getid(){
+//        ContactFormDB contactFormDB = new ContactFormDB(ContactForm.this);
+//    }
+
+
+    public long getId() {
+        return id;
+    }
 
     public int describeContents() {
         return 0;

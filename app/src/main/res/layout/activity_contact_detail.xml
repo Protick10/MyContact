@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- activity_contact_detail.xml -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -55,5 +56,19 @@
         android:layout_below="@id/textViewPhoneOffice"
         android:layout_marginTop="16dp"
         android:layout_centerHorizontal="true"/>
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="114dp"
+        android:layout_height="108dp"
+        android:layout_alignRight="@id/textViewPhoneHome"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="246dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="51dp"
+        android:layout_marginRight="-241dp"
+        app:srcCompat="@drawable/man" />
 
 </RelativeLayout>

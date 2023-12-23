@@ -80,6 +80,8 @@ import androidx.annotation.Nullable;
 
 public class ContactFormDB extends SQLiteOpenHelper {
 
+    ContactFormAdapter adapter;
+
     private static final String DATABASE_NAME = "contacts.db";
     private static final int DATABASE_VERSION = 1;
 
@@ -100,6 +102,16 @@ public class ContactFormDB extends SQLiteOpenHelper {
                     COLUMN_PHONE_OFFICE + " TEXT, " +
                     COLUMN_IMAGE + " TEXT" +
                     ")";
+
+//    private static final String CREATE_TABLE_CONTACTS =
+//            "CREATE TABLE " + TABLE_CONTACTS + "(" +
+//                    COLUMN_ID + " INTEGER , " +
+//                    COLUMN_NAME + " TEXT, " +
+//                    COLUMN_EMAIL + " TEXT, " +
+//                    COLUMN_PHONE_HOME + " TEXT PRIMARY KEY, " +
+//                    COLUMN_PHONE_OFFICE + " TEXT, " +
+//                    COLUMN_IMAGE + " TEXT" +
+//                    ")";
 
     public ContactFormDB(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -135,15 +147,7 @@ public class ContactFormDB extends SQLiteOpenHelper {
         return id;
     }
 
-    // Method to retrieve contacts
-    public Cursor selectContacts(String query) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery(query, null);
-    }
-
-    // Other methods for updating, deleting, querying, etc. can be added based on requirements
-
-    public int updateContact(long id, String name, String email, String phoneHome, String phoneOffice, String encodedImage) {
+    public long getid(String name, String email, String phoneHome, String phoneOffice, String encodedImage) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_NAME, name);
@@ -152,8 +156,63 @@ public class ContactFormDB extends SQLiteOpenHelper {
         values.put(COLUMN_PHONE_OFFICE, phoneOffice);
         values.put(COLUMN_IMAGE, encodedImage);
 
-        return db.update(TABLE_CONTACTS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+        long id = db.insert(TABLE_CONTACTS, null, values);
+        db.close();
+        return id;
     }
+
+    // Method to retrieve contacts
+    public Cursor selectContacts(String query) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery(query, null);
+    }
+
+    // Other methods for updating, deleting, querying, etc. can be added based on requirements
+
+    public int updateContacts(long id,String name, String email, String phoneHome, String phoneOffice, String encodedImage) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NAME, name);
+        values.put(COLUMN_EMAIL, email);
+        values.put(COLUMN_PHONE_HOME, phoneHome);
+        values.put(COLUMN_PHONE_OFFICE, phoneOffice);
+        values.put(COLUMN_IMAGE, encodedImage);
+
+//        return db.update(TABLE_CONTACTS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+//        return db.update(TABLE_CONTACTS, values, COLUMN_ID + " = "+id, null);
+//        int result = db.update(TABLE_CONTACTS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+//        if (result > 0) {
+//            adapter.notifyDataSetChanged();
+//        }
+//        return result;
+
+        int result = db.update(TABLE_CONTACTS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+        if (result > 0) {
+            // Notify the adapter that the data set has changed
+            adapter.notifyDataSetChanged();
+        }
+        db.close();
+        return result;
+
+    }
+
+//    public int updateContacts(ContactForm contactForm) {
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        ContentValues values = new ContentValues();
+//        values.put(COLUMN_NAME, contactForm.name);
+//        values.put(COLUMN_EMAIL, contactForm.email);
+//        values.put(COLUMN_PHONE_HOME, contactForm.phone_home);
+//        values.put(COLUMN_PHONE_OFFICE, contactForm.phone_offfice);
+//        values.put(COLUMN_IMAGE, contactForm.image);
+//
+//        return db.update(TABLE_CONTACTS, values, COLUMN_ID + " = "+contactForm.id, null);
+////        int result = db.update(TABLE_CONTACTS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+////        if (result > 0) {
+////            adapter.notifyDataSetChanged();
+////        }
+////        return result;
+//
+//    }
 
     // Method to delete contact
     public void deleteContact(long id) {

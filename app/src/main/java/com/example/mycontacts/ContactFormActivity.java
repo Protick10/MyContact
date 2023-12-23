@@ -1,5 +1,7 @@
 package com.example.mycontacts;
 
+import static android.content.ContentValues.TAG;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -19,6 +21,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -28,6 +31,7 @@ import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class ContactFormActivity extends AppCompatActivity {
 
@@ -36,6 +40,13 @@ public class ContactFormActivity extends AppCompatActivity {
     Button cancel,save;
     String encodedImage;
     int camera_req_code=100, gallary_req_code=10;
+
+    private ContactForm contactToUpdate;
+
+    long getid=0;
+    ContactFormAdapter adapter;
+    private ArrayList<ContactForm> contacts;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +60,10 @@ public class ContactFormActivity extends AppCompatActivity {
         profileImg = findViewById(R.id.formImageView);
         cancel = findViewById(R.id.formCancelbutton);
         save = findViewById(R.id.formSaveButton);
+
+        contacts = new ArrayList<>();
+        adapter = new ContactFormAdapter(this, contacts);
+
 
 
         //when click on image..
@@ -81,6 +96,30 @@ public class ContactFormActivity extends AppCompatActivity {
 //        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
 //
 //        profileImg.setImageBitmap(bitmap);
+
+
+        //adding code for update contact..
+
+        contactToUpdate = getIntent().getParcelableExtra("contact");
+
+        if (contactToUpdate != null) {
+            // Update UI elements with existing contact details
+            name.setText(contactToUpdate.name);
+            email.setText(contactToUpdate.email);
+            phoneHome.setText(contactToUpdate.phone_home);
+            phoneOffice.setText(contactToUpdate.phone_offfice);
+
+            // Decode and display the existing profile image
+            if (contactToUpdate.image != null) {
+                try {
+                    byte[] byteCam = Base64.decode(contactToUpdate.image, Base64.DEFAULT);
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(byteCam, 0, byteCam.length);
+                    profileImg.setImageBitmap(bitmap);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
 
         save.setOnClickListener(new View.OnClickListener() {
@@ -138,10 +177,12 @@ public class ContactFormActivity extends AppCompatActivity {
                     // Get the image data
                     // ...
                     // Your code to save contact information with image data
-                    ContactFormDB db = new ContactFormDB(ContactFormActivity.this);
-                    db.insertContacts(nameStr, emailStr, phoneHomeStr, phoneOfficeStr, encodedImage);
-                    Intent intent = new Intent(ContactFormActivity.this, ContactListActivity.class);
-                    startActivity(intent);
+//                    ContactFormDB db = new ContactFormDB(ContactFormActivity.this);
+//                    db.insertContacts(nameStr, emailStr, phoneHomeStr, phoneOfficeStr, encodedImage);
+//                    Intent intent = new Intent(ContactFormActivity.this, ContactListActivity.class);
+//                    startActivity(intent);
+
+                    saveOrUpdateContact();
                     // Clear the errors
                     name.setError(null);
                     email.setError(null);
@@ -210,6 +251,99 @@ public class ContactFormActivity extends AppCompatActivity {
 
 
     }
+
+    private void saveOrUpdateContact() {
+        // Get the user-inputted data from UI elements
+        String updatedName = name.getText().toString().trim();
+        String updatedEmail = email.getText().toString().trim();
+        String updatedPhoneHome = phoneHome.getText().toString().trim();
+        String updatedPhoneOffice = phoneOffice.getText().toString().trim();
+        // Encode the image to Base64
+        String updatedEncodedImage = encodedImage; // Implement this method
+
+
+        // If contactToUpdate is null, it means we're creating a new contact
+        if (contactToUpdate == null) {
+            // Save the new contact
+            ContactFormDB db = new ContactFormDB(ContactFormActivity.this);
+//            getid=db.insertContacts(updatedName, updatedEmail, updatedPhoneHome, updatedPhoneOffice, updatedEncodedImage);
+//            Log.d(TAG, "saveOrUpdateContact: " + getid);
+
+            long newContactId = db.insertContacts(updatedName, updatedEmail, updatedPhoneHome, updatedPhoneOffice, updatedEncodedImage);
+            // Add the new contact to the ArrayList
+            contacts.add(new ContactForm(newContactId, updatedName, updatedEmail, updatedPhoneHome, updatedPhoneOffice, updatedEncodedImage));
+
+
+
+
+        } else {
+            // Update the existing contact
+            ContactFormDB db = new ContactFormDB(ContactFormActivity.this);
+//            ContactForm contactForm = new ContactForm(contactToUpdate.id, updatedName, updatedEmail, updatedPhoneHome, updatedPhoneOffice, updatedEncodedImage);
+//            getid = db.insertContacts(updatedName, updatedEmail, updatedPhoneHome, updatedPhoneOffice, updatedEncodedImage);
+//            db.updateContacts(contactToUpdate.id, updatedName, updatedEmail, updatedPhoneHome, updatedPhoneOffice, updatedEncodedImage);
+//
+//            db.updateContacts(contactToUpdate.id, updatedName, updatedEmail, updatedPhoneHome, updatedPhoneOffice, updatedEncodedImage);
+//            adapter = new ContactFormAdapter(this,contacts);
+
+            db.updateContacts(contactToUpdate.id, updatedName, updatedEmail, updatedPhoneHome, updatedPhoneOffice, updatedEncodedImage);
+            // Update the corresponding ContactForm in the ArrayList
+            int position = contacts.indexOf(contactToUpdate);
+            if (position != -1) {
+                contacts.set(position, new ContactForm(contactToUpdate.id, updatedName, updatedEmail, updatedPhoneHome, updatedPhoneOffice, updatedEncodedImage));
+            }
+
+            adapter.notifyDataSetChanged();
+//            int position = contacts.indexOf(contactToUpdate);
+//            if (position != -1) {
+//                contacts.set(position, new ContactForm(contactToUpdate.id, updatedName, updatedEmail, updatedPhoneHome, updatedPhoneOffice, updatedEncodedImage));
+//            }
+        }
+
+        // Navigate back to ContactListActivity
+        Intent intent = new Intent(ContactFormActivity.this, ContactListActivity.class);
+        intent.putExtra("id", getid);
+        startActivity(intent);
+    }
+
+
+
+//    private void saveOrUpdateContact() {
+//        // Get the user-inputted data from UI elements
+//        String updatedName = name.getText().toString().trim();
+//        String updatedEmail = email.getText().toString().trim();
+//        String updatedPhoneHome = phoneHome.getText().toString().trim();
+//        String updatedPhoneOffice = phoneOffice.getText().toString().trim();
+//        // Encode the image to Base64
+//        String updatedEncodedImage = encodedImage; // Implement this method
+//
+//        // If contactToUpdate is null, it means we're creating a new contact
+//        if (contactToUpdate == null) {
+//            // Save the new contact
+//            ContactFormDB db = new ContactFormDB(ContactFormActivity.this);
+//            long newContactId = db.insertContacts(updatedName, updatedEmail, updatedPhoneHome, updatedPhoneOffice, updatedEncodedImage);
+//            // Initialize the contacts ArrayList if it's null
+//            if (contacts == null) {
+//                contacts = new ArrayList<>();
+//            }
+//            // Add the new contact to the ArrayList
+//            contacts.add(new ContactForm(newContactId, updatedName, updatedEmail, updatedPhoneHome, updatedPhoneOffice, updatedEncodedImage));
+//        } else {
+//            // Update the existing contact
+//            ContactFormDB db = new ContactFormDB(ContactFormActivity.this);
+//            db.updateContacts(contactToUpdate.id, updatedName, updatedEmail, updatedPhoneHome, updatedPhoneOffice, updatedEncodedImage);
+//            // Initialize the contacts ArrayList if it's null
+//            if (contacts == null) {
+//                contacts = new ArrayList<>();
+//            }
+//            // Update the corresponding ContactForm in the ArrayList
+//            int position = contacts.indexOf(contactToUpdate);
+//            if (position != -1) {
+//                contacts.set(position, new ContactForm(contactToUpdate.id, updatedName, updatedEmail, updatedPhoneHome, updatedPhoneOffice, updatedEncodedImage));
+//            }
+//        }
+//        adapter.notifyDataSetChanged();
+//    }
 
 //    @Override
 //    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
